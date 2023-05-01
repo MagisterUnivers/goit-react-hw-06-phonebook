@@ -1,25 +1,32 @@
-import { useState, useEffect } from 'react';
 import { ContactForm } from './ContactForm/ContactForm';
 import ContactsList from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
 import { nanoid } from 'nanoid';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectContacts, selectFilter } from 'redux/contactsSelectors';
+import { addContact, deleteContact, setFilter } from 'redux/contactsSlice';
 import styled from 'styled-components';
 
 export function App() {
-  const [contacts, setContacts] = useState(() => {
-    const localStorageContacts = localStorage.getItem('contacts');
-    if (localStorageContacts) {
-      return JSON.parse(localStorageContacts);
-    }
-    return [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ];
-  });
-  const [filter, setFilter] = useState('');
-  const [custominput, setCustominput] = useState('');
+  const contacts = useSelector(selectContacts);
+  const filter = useSelector(selectFilter);
+
+  const dispatch = useDispatch();
+
+  // const [contacts, setContacts] = useState(() => {
+  //   const localStorageContacts = localStorage.getItem('contacts');
+  //   if (localStorageContacts) {
+  //     return JSON.parse(localStorageContacts);
+  //   }
+  //   return [
+  //     { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+  //     { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  //     { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  //     { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  //   ];
+  // });
+  // const [filter, setFilter] = useState('');
+  // const [custominput, setCustominput] = useState('');
 
   // const [name, setName] = useState('');
   // const [number, setNumber] = useState('');
@@ -38,14 +45,14 @@ export function App() {
   //   }
   // }, []);
 
-  useEffect(() => {
-    console.log('DOM Updated!');
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  // useEffect(() => {
+  //   console.log('DOM Updated!');
+  //   localStorage.setItem('contacts', JSON.stringify(contacts));
+  // }, [contacts]);
 
-  useEffect(() => {
-    localStorage.setItem('custominput', JSON.stringify(custominput));
-  }, [custominput]);
+  // useEffect(() => {
+  //   localStorage.setItem('custominput', JSON.stringify(custominput));
+  // }, [custominput]);
 
   const handleSubmit = e => {
     e.preventDefault();
@@ -54,10 +61,13 @@ export function App() {
     const USER_NUMBER = number.value;
     const ARRAY_NAMES = contacts.map(contact => contact.name);
     if (!ARRAY_NAMES.includes(USER_NAME)) {
-      setContacts(prevContacts => [
-        ...prevContacts,
-        { name: USER_NAME, number: USER_NUMBER, id: nanoid() },
-      ]);
+      // (prevContacts => [
+      //   ...prevContacts,
+      //   { name: USER_NAME, number: USER_NUMBER, id: nanoid() },
+      // ]);
+      dispatch(
+        addContact({ name: USER_NAME, number: USER_NUMBER, id: nanoid() })
+      );
     } else {
       alert(`${USER_NAME} already in contacts`);
     }
@@ -65,18 +75,22 @@ export function App() {
   };
 
   const handleChange = evt => {
-    const { name, value } = evt.target;
-    if (name === 'filter') {
-      setFilter(value);
-    } else if (name === 'custominput') {
-      setCustominput(value);
-    }
+    dispatch(setFilter(evt.target.value));
+
+    // const { name, value } = evt.target;
+    // if (name === 'filter') {
+    //   setFilter(value);
+    // } else if (name === 'custominput') {
+    //   // setCustominput(value);
+    // }
   };
 
   const changeId = id => {
-    setContacts(prevContacts =>
-      prevContacts.filter(contact => contact.id !== id)
-    );
+    dispatch(deleteContact(id));
+
+    // setContacts(prevContacts =>
+    //   prevContacts.filter(contact => contact.id !== id)
+    // );
   };
 
   const filteredContacts = contacts.filter(el =>
@@ -91,7 +105,7 @@ export function App() {
       <input
         type="text"
         name="custominput"
-        value={custominput}
+        // value={custominput}
         className="result"
         onChange={handleChange}
         pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
@@ -99,7 +113,7 @@ export function App() {
         required
       />
       <ContactForm handleChange={handleChange} handleSubmit={handleSubmit} />
-      <Filter filteredContacts={filteredContacts} handleChange={handleChange} />
+      <Filter handleChange={handleChange} />
       <ContactsList contacts={filteredContacts} changeId={changeId} />
     </>
   );
